@@ -26,6 +26,9 @@ class CnnDqnAgent(object):
     image_feature_dim = 256 * 6 * 6
     image_feature_count = 1
 
+    # モデルを保存する頻度
+    save_model_freq = 10000
+
     def _observation_to_featurevec(self, observation):
         # TODO clean
         if self.image_feature_count == 1:
@@ -158,6 +161,10 @@ class CnnDqnAgent(object):
         if self.policy_frozen is False:
             self.last_action = copy.deepcopy(action)
             self.last_state = self.state.copy()
+
+            if self.q_net.initial_exploration < self.time and np.mod(self.time,self.save_model_freq) == 0:
+                self.q_net.save_model(self.time)
+
             self.time += 1
 
    # 学習系メソッド
@@ -176,4 +183,7 @@ class CnnDqnAgent(object):
 
         # Time count
         if self.policy_frozen is False:
+            if self.q_net.initial_exploration < self.time and np.mod(self.time,self.save_model_freq) == 0:
+                self.q_net.save_model(self.time)
+
             self.time += 1

@@ -2,7 +2,7 @@
 
 import copy
 import numpy as np
-from chainer import cuda, FunctionSet, Variable, optimizers
+from chainer import cuda, FunctionSet, Variable, optimizers, serializers
 import chainer.functions as F
 
 
@@ -12,6 +12,8 @@ class QNet:
 
     #最初に1000回ランダムに行動
     initial_exploration = 10**3  # Initial exploratoin. original: 5x10^4
+    #initial_exploration = 10  # Initial exploratoin. original: 5x10^4
+
     replay_size = 32  # Replay (batch) size
     target_model_update_freq = 10**4  # Target update frequancy. original: 10^4
     data_size = 10**5  # Data size of history. original: 10^6
@@ -179,3 +181,13 @@ class QNet:
 
     def action_to_index(self, action):
         return self.enable_controller.index(action)
+
+    def save_model(self,time):
+        #modelname = "model_%s"%(datetime.datetime.now().strftime("%m-%d-%H-%M"))
+        modelname = "%dcycle_model_hoge"%(time)
+        serializers.save_npz("./Model/%s"%(modelname),self.model)
+        print "model is saved!!(Model_Name=%s)"%(modelname)
+        print "----------------------------------------------"
+
+    def load_model(self,model_name):
+        serializers.load_npz('./modelKeep/'+model_name,self.model)
