@@ -1,4 +1,6 @@
 sample-environment
+fix-python-agent/Model/*_hoge*
+
 fetch.sh
 LICENSE.txt
 README.md
