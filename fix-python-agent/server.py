@@ -26,8 +26,10 @@ parser.add_argument('--gpu', '-g', default=-1, type=int,
 parser.add_argument('--log-file', '-l', default='reward.log', type=str,
                     help='reward log file name')
 
-parser.add_argument('--test', '-t', default=-1, type=int,
-                    help='TRAIN or TEST (negative value indicates TRAIN)')
+parser.add_argument('--test', '-t', action = "store_true",
+                    help='TEST flags, False => Train')
+parser.add_argument('--model', '-m', default='best_model',
+                    help='name of load model(default : best_model)')
 
 args = parser.parse_args()
 
@@ -97,7 +99,9 @@ class AgentServer(WebSocket):
             #depth_image_dimが引数で使われるのはここだけ
             self.agent.agent_init(
                 use_gpu=args.gpu,
-                depth_image_dim=self.depth_image_dim * self.depth_image_count)
+                depth_image_dim=self.depth_image_dim * self.depth_image_count,
+                test= args.test,
+                model_name = args.model)
 
             action = self.agent.agent_start(observation)
             self.send_action(action)

@@ -183,11 +183,15 @@ class QNet:
         return self.enable_controller.index(action)
 
     def save_model(self,time):
-        #modelname = "model_%s"%(datetime.datetime.now().strftime("%m-%d-%H-%M"))
-        modelname = "%dcycle_model_hoge"%(time)
-        serializers.save_npz("./Model/%s"%(modelname),self.model)
-        print "model is saved!!(Model_Name=%s)"%(modelname)
+        #model_name = "model_%s"%(datetime.datetime.now().strftime("%m-%d-%H-%M"))
+        model_name = "%dcycle_model_hoge"%(time)
+        serializers.save_npz("./Model/%s"%(model_name),self.model)
+        print "----------------------------------------------"
+        print "model is saved!!(Model_Name=%s)"%(model_name)
         print "----------------------------------------------"
 
     def load_model(self,model_name):
-        serializers.load_npz('./modelKeep/'+model_name,self.model)
+        serializers.load_npz("./Model/%s"%(model_name),self.model)
+        print "----------------------------------------------"
+        print "model load is done!!(Model_Name=%s)"%(model_name)
+        print "----------------------------------------------"

@@ -49,6 +49,7 @@ class CnnDqnAgent(object):
     def agent_init(self, **options):
         self.use_gpu = options['use_gpu']
         self.depth_image_dim = options['depth_image_dim']
+
         self.q_net_input_dim = self.image_feature_dim * self.image_feature_count + self.depth_image_dim
 
         if os.path.exists(self.cnn_feature_extractor):
@@ -65,6 +66,13 @@ class CnnDqnAgent(object):
         self.epsilon = 1.0  # Initial exploratoin rate
 
         self.q_net = QNet(self.use_gpu, self.actions, self.q_net_input_dim)
+
+        test = options['test']
+        if test:
+            print "----------This is TEST----------"
+            self.policy_frozen = True
+            model_name = options['model_name']
+            self.q_net.load_model(model_name)
 
     # 行動取得系,state更新系メソッド
     def agent_start(self, observation):
@@ -127,7 +135,7 @@ class CnnDqnAgent(object):
                 eps = 1.0
         else:  # Evaluation
             print("Policy is Frozen")
-            eps = 0.05
+            eps = 0
 
         # Generate an Action by e-greedy action selection
         action, q_now = self.q_net.e_greedy(state_, eps)
@@ -152,7 +160,7 @@ class CnnDqnAgent(object):
         else:
             q_max = np.max(q_now)
 
-        print('Step:%d  Action:%d  Reward:%.6f  Epsilon:%.6f  Q_max:%3f' % (
+        print('Step:%d  Action:%d  Reward:%.3f  Epsilon:%.6f  Q_max:%3f' % (
             self.time, self.q_net.action_to_index(action), reward, eps, q_max))
 
         # Updates for next step , 更新するだけで使ってない
