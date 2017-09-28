@@ -8,7 +8,9 @@ import chainer.functions as F
 
 class QNet:
     # Hyper-Parameters
-    gamma = 0.99  # Discount factor
+    gamma = 0.99  # 報酬の割引率
+
+    #最初に1000回ランダムに行動
     initial_exploration = 10**3  # Initial exploratoin. original: 5x10^4
     replay_size = 32  # Replay (batch) size
     target_model_update_freq = 10**4  # Target update frequancy. original: 10^4
@@ -25,11 +27,13 @@ class QNet:
 
         hidden_dim = 256
         self.model = FunctionSet(
-            l4=F.Linear(self.dim*self.hist_size, hidden_dim, wscale=np.sqrt(2)),
+            l4=F.Linear(self.dim*self.hist_size, hidden_dim,
+                            wscale=np.sqrt(2)),
             q_value=F.Linear(hidden_dim, self.num_of_actions,
-                             initialW=np.zeros((self.num_of_actions, hidden_dim),
-                                               dtype=np.float32))
+                            initialW=np.zeros((self.num_of_actions, hidden_dim),
+                            dtype=np.float32))
         )
+
         if self.use_gpu >= 0:
             self.model.to_gpu()
 
@@ -39,10 +43,12 @@ class QNet:
         self.optimizer.setup(self.model.collect_parameters())
 
         # History Data :  D=[s, a, r, s_dash, end_episode_flag]
-        self.d = [np.zeros((self.data_size, self.hist_size, self.dim), dtype=np.uint8),
+        self.d = [np.zeros((self.data_size, self.hist_size, self.dim),
+                    dtype=np.uint8),
                   np.zeros(self.data_size, dtype=np.uint8),
                   np.zeros((self.data_size, 1), dtype=np.int8),
-                  np.zeros((self.data_size, self.hist_size, self.dim), dtype=np.uint8),
+                  np.zeros((self.data_size, self.hist_size, self.dim),
+                    dtype=np.uint8),
                   np.zeros((self.data_size, 1), dtype=np.bool)]
 
     def forward(self, state, action, reward, state_dash, episode_end):
@@ -89,11 +95,12 @@ class QNet:
         loss = F.mean_squared_error(td_clip, zero_val)
         return loss, q
 
-    def stock_experience(self, time,
-                        state, action, reward, state_dash,
-                        episode_end_flag):
+    def stock_experience(self, time,state, action, reward,
+                        state_dash,episode_end_flag):
+        #timeを引数に入れることでqueueを実現
         data_index = time % self.data_size
-
+        #奥山プログラムとの違い -> appendじゃない
+        # -> ep_endがTrueならstate_dashが全て0になる
         if episode_end_flag is True:
             self.d[0][data_index] = state
             self.d[1][data_index] = action
@@ -108,11 +115,14 @@ class QNet:
     def experience_replay(self, time):
         if self.initial_exploration < time:
             # Pick up replay_size number of samples from the Data
-            if time < self.data_size:  # during the first sweep of the History Data
+            # 例 : np.random.randint(0,100,(5,5))  0〜99 の整数で5x5の行列を生成
+            if time < self.data_size: #during the first sweep of the History
                 replay_index = np.random.randint(0, time, (self.replay_size, 1))
             else:
                 replay_index = np.random.randint(0, self.data_size, (self.replay_size, 1))
 
+            #奥山プログラムとの違い -> 全てのExperienceに対してReplayない
+            # -> ep_endがTrueならstate_dashが全て0になる
             s_replay = np.ndarray(shape=(self.replay_size, self.hist_size, self.dim), dtype=np.float32)
             a_replay = np.ndarray(shape=(self.replay_size, 1), dtype=np.uint8)
             r_replay = np.ndarray(shape=(self.replay_size, 1), dtype=np.float32)

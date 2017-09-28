@@ -1,4 +1,5 @@
 # coding:utf-8
+'''
 a = 2
 print 'Hello World'
 import numpy as np
@@ -14,3 +15,31 @@ import sys
 import matplotlib.pyplot as plt
 %matplotlib inline
 plt.imshow(image)
+
+'''
+class Num(object):
+    def __init__(self,n):
+        self.num = n
+number = Num(5)
+print number
+print Num(4)
+
+print number.num
+
+import numpy as np
+ilsvrc = np.load('/Users/okuyamatakashi/lis/fix-python-agent/ilsvrc_2012_mean.npy')
+
+ilsvrc.shape
+print "bbb" ,
+print "aaa"
+
+def hoge():
+    return 1,2
+
+a, = hoge()
+print a
+
+a = 3.123456678910
+3 * (a < 6)
+3 * (a > 6)
+print "%.3f"%(a)

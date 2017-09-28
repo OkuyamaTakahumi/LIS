@@ -12,14 +12,17 @@ from q_net import QNet
 
 class CnnDqnAgent(object):
     policy_frozen = False
+    #deltaの減少量
     epsilon_delta = 1.0 / 10 ** 4.4
+    #deltaの最小値
     min_eps = 0.1
-
+    #アクションリスト(数字じゃなくても大丈夫)
     actions = [0, 1, 2]
 
-    cnn_feature_extractor = 'alexnet_feature_extractor.pickle'
-    model = 'bvlc_alexnet.caffemodel'
-    model_type = 'alexnet'
+    cnn_feature_extractor = 'alexnet_feature_extractor.pickle' #1
+    model = 'bvlc_alexnet.caffemodel' #2
+    model_type = 'alexnet' #3
+
     image_feature_dim = 256 * 6 * 6
     image_feature_count = 1
 
@@ -48,9 +51,8 @@ class CnnDqnAgent(object):
         if os.path.exists(self.cnn_feature_extractor):
             print("loading... " + self.cnn_feature_extractor),
             self.feature_extractor = pickle.load(open(self.cnn_feature_extractor))
-
-
             print("done")
+
         else:
             self.feature_extractor = CnnFeatureExtractor(self.use_gpu, self.model, self.model_type, self.image_feature_dim)
             pickle.dump(self.feature_extractor, open(self.cnn_feature_extractor, 'w'))
@@ -61,6 +63,7 @@ class CnnDqnAgent(object):
 
         self.q_net = QNet(self.use_gpu, self.actions, self.q_net_input_dim)
 
+    # 行動取得系,state更新系メソッド
     def agent_start(self, observation):
         obs_array = self._observation_to_featurevec(observation)
         # Initialize State
@@ -77,11 +80,16 @@ class CnnDqnAgent(object):
         # Update for next step
         self.last_action = copy.deepcopy(return_action)
         self.last_state = self.state.copy()
+
+        # 更新するだけで使ってない
         self.last_observation = obs_array
 
         return return_action
 
+    # 行動取得系,state更新系メソッド
     def agent_step(self, reward, observation):
+        # rewardは使ってない
+
         obs_array = self._observation_to_featurevec(observation)
 
         #obs_processed = np.maximum(obs_array, self.last_observation)  # Take maximum from two frames
@@ -96,17 +104,21 @@ class CnnDqnAgent(object):
         else:
             print("self.DQN.hist_size err")
 
+        # q_funcに入れる際は(サンプル数,hist_size,q_net_input_dim)
+        # 例:np.ndarray(shape=(self.replay_size, self.hist_size, self.dim))
         state_ = np.asanyarray(self.state.reshape(1, self.q_net.hist_size, self.q_net_input_dim), dtype=np.float32)
         if self.use_gpu >= 0:
             state_ = cuda.to_gpu(state_)
 
         # Exploration decays along the time sequence
         if self.policy_frozen is False:  # Learning ON/OFF
-            if self.q_net.initial_exploration < self.time:
+            if self.q_net.initial_exploration < self.time: #timeが1000を超えたら
                 self.epsilon -= self.epsilon_delta
                 if self.epsilon < self.min_eps:
                     self.epsilon = self.min_eps
                 eps = self.epsilon
+
+            #最初に1000回ランダムに行動
             else:  # Initial Exploation Phase
                 print("Initial Exploration : %d/%d steps" % (self.time, self.q_net.initial_exploration)),
                 eps = 1.0
@@ -119,6 +131,7 @@ class CnnDqnAgent(object):
 
         return action, eps, q_now, obs_array
 
+   # 学習系メソッド
     def agent_step_update(self, reward, action, eps, q_now, obs_array):
         # Learning Phase
         if self.policy_frozen is False:  # Learning ON/OFF
@@ -136,10 +149,10 @@ class CnnDqnAgent(object):
         else:
             q_max = np.max(q_now)
 
-        print('Step:%d  Action:%d  Reward:%.1f  Epsilon:%.6f  Q_max:%3f' % (
+        print('Step:%d  Action:%d  Reward:%.6f  Epsilon:%.6f  Q_max:%3f' % (
             self.time, self.q_net.action_to_index(action), reward, eps, q_max))
 
-        # Updates for next step
+        # Updates for next step , 更新するだけで使ってない
         self.last_observation = obs_array
 
         if self.policy_frozen is False:
@@ -147,13 +160,13 @@ class CnnDqnAgent(object):
             self.last_state = self.state.copy()
             self.time += 1
 
+   # 学習系メソッド
     def agent_end(self, reward):  # Episode Terminated
         print('episode finished. Reward:%.1f / Epsilon:%.6f' % (reward, self.epsilon))
 
         # Learning Phase
         if self.policy_frozen is False:  # Learning ON/OFF
-            self.q_net.stock_experience(self.time, self.last_state, self.last_action, reward, self.last_state,
-                                        True)
+            self.q_net.stock_experience(self.time, self.last_state, self.last_action, reward, self.last_state,True)
             self.q_net.experience_replay(self.time)
 
         # Target model update

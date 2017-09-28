@@ -12,6 +12,10 @@ from PIL import ImageOps
 import threading
 import numpy as np
 
+print "----------------------------------"
+print "This is Okuyama's python-agent !!!"
+print "----------------------------------"
+
 parser = argparse.ArgumentParser(description='ml-agent-for-unity')
 parser.add_argument('--port', '-p', default='8765', type=int,
                     help='websocket port')
@@ -21,6 +25,10 @@ parser.add_argument('--gpu', '-g', default=-1, type=int,
                     help='GPU ID (negative value indicates CPU)')
 parser.add_argument('--log-file', '-l', default='reward.log', type=str,
                     help='reward log file name')
+
+parser.add_argument('--test', '-t', default=-1, type=int,
+                    help='TRAIN or TEST (negative value indicates TRAIN)')
+
 args = parser.parse_args()
 
 
@@ -36,12 +44,17 @@ class Root(object):
 
 
 class AgentServer(WebSocket):
-    agent = CnnDqnAgent()
+
+    agent = CnnDqnAgent()#cnn_dqn_agent.pyの中のCnnDqnAgentクラスのインスタンス
     agent_initialized = False
-    cycle_counter = 0
-    thread_event = threading.Event()
+
+    cycle_counter = 0#agentの行動回数、logファイルのX軸の値
+
+    thread_event = threading.Event()#threading -> Eventの中にWait,Setがある
     log_file = args.log_file
     reward_sum = 0
+
+    #depthImageをベクトルreshape,agent_initの引数に使用
     depth_image_dim = 32 * 32
     depth_image_count = 1
 
@@ -60,6 +73,7 @@ class AgentServer(WebSocket):
         depth = []
         for i in xrange(self.depth_image_count):
             d = (Image.open(io.BytesIO(bytearray(dat['depth'][i]))))
+            #depth画像は一次元ベクトルにreshape
             depth.append(np.array(ImageOps.grayscale(d)).reshape(self.depth_image_dim))
 
         observation = {"image": image, "depth": depth}
@@ -80,12 +94,14 @@ class AgentServer(WebSocket):
         if not self.agent_initialized:
             self.agent_initialized = True
             print ("initializing agent...")
+            #depth_image_dimが引数で使われるのはここだけ
             self.agent.agent_init(
                 use_gpu=args.gpu,
                 depth_image_dim=self.depth_image_dim * self.depth_image_count)
 
             action = self.agent.agent_start(observation)
             self.send_action(action)
+            #logファイルへの書き込み
             with open(self.log_file, 'w') as the_file:
                 the_file.write('cycle, episode_reward_sum \n')
         else:
@@ -97,6 +113,7 @@ class AgentServer(WebSocket):
                 self.agent.agent_end(reward)
                 action = self.agent.agent_start(observation)  # TODO
                 self.send_action(action)
+                #logファイルへの書き込み
                 with open(self.log_file, 'a') as the_file:
                     the_file.write(str(self.cycle_counter) +
                                    ',' + str(self.reward_sum) + '\n')
