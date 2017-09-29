@@ -51,6 +51,7 @@ class AgentServer(WebSocket):
     agent_initialized = False
 
     cycle_counter = 0#agentの行動回数、logファイルのX軸の値
+    episode_num = 1 #行ったエピソードの数
 
     thread_event = threading.Event()#threading -> Eventの中にWait,Setがある
     log_file = args.log_file
@@ -103,11 +104,14 @@ class AgentServer(WebSocket):
                 test= args.test,
                 model_name = args.model)
 
-            action = self.agent.agent_start(observation)
+            action = self.agent.agent_start(observation,self.episode_num)
             self.send_action(action)
-            #logファイルへの書き込み
-            with open(self.log_file, 'w') as the_file:
-                the_file.write('cycle, episode_reward_sum \n')
+
+            if args.test is False:
+                #logファイルへの書き込み
+                with open(self.log_file, 'w') as the_file:
+                    the_file.write('cycle, episode_reward_sum \n')
+
         else:
             self.thread_event.wait()
             self.cycle_counter += 1
@@ -115,12 +119,16 @@ class AgentServer(WebSocket):
 
             if end_episode:
                 self.agent.agent_end(reward)
-                action = self.agent.agent_start(observation)  # TODO
+
+                self.episode_num += 1
+                action = self.agent.agent_start(observation,self.episode_num)  # TODO
                 self.send_action(action)
-                #logファイルへの書き込み
-                with open(self.log_file, 'a') as the_file:
-                    the_file.write(str(self.cycle_counter) +
-                                   ',' + str(self.reward_sum) + '\n')
+
+                if args.test is False:
+                    #logファイルへの書き込み
+                    with open(self.log_file, 'a') as the_file:
+                        the_file.write(str(self.cycle_counter) +
+                                       ',' + str(self.reward_sum) + '\n')
                 self.reward_sum = 0
             else:
                 action, eps, q_now, obs_array = self.agent.agent_step(reward, observation)

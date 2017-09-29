@@ -75,7 +75,10 @@ class CnnDqnAgent(object):
             self.q_net.load_model(model_name)
 
     # 行動取得系,state更新系メソッド
-    def agent_start(self, observation):
+    def agent_start(self, observation, episode_num):
+        print "----------------------------------"
+        print "Episode %d Start"%(episode_num)
+        print "----------------------------------"
         obs_array = self._observation_to_featurevec(observation)
         # Initialize State
         self.state = np.zeros((self.q_net.hist_size, self.q_net_input_dim), dtype=np.uint8)
@@ -160,7 +163,7 @@ class CnnDqnAgent(object):
         else:
             q_max = np.max(q_now)
 
-        print('Step:%d  Action:%d  Reward:%.3f  Epsilon:%.6f  Q_max:%3f' % (
+        print('Step:%d  Action:%d  Reward:%.1f  Epsilon:%.6f  Q_max:%3f' % (
             self.time, self.q_net.action_to_index(action), reward, eps, q_max))
 
         # Updates for next step , 更新するだけで使ってない
