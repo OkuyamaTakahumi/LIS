@@ -1,5 +1,6 @@
 sample-environment
 fix-python-agent/Model/*_hoge*
+photo/
 
 fetch.sh
 LICENSE.txt
