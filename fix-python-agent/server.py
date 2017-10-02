@@ -57,10 +57,10 @@ parser.add_argument('--model', '-m', default='best_model',
 args = parser.parse_args()
 
 # Qの値を描画するキャンバス作成
-#if args.test:
-    #print "----------This is TEST----------"
-q = np.array([0,0,0])
-pause_Q_plot(q)
+if args.test:
+    print "----------This is TEST----------"
+    q = np.array([0,0,0])
+    pause_Q_plot(q)
 
 
 
@@ -153,10 +153,9 @@ class AgentServer(WebSocket):
             else:
                 action, eps, q_now, obs_array = self.agent.agent_step(reward, observation)
 
-
                 # draw Q value
-                #if args.test:
-                pause_Q_plot(q_now.ravel())
+                if args.test:
+                    pause_Q_plot(q_now.ravel())
 
 
                 self.send_action(action)

@@ -45,7 +45,7 @@ a = 3.123456678910
 print "%.3f"%(a)
 
 np.mod(9393929394939912,10)
-'''
+
 
 q = np.array([0,0,0])
 max_q_abs = max(abs(q))
@@ -65,6 +65,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 print "unko"
+'''
 
 def pause_Q_plot(q):
 
