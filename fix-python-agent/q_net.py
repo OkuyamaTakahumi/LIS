@@ -186,12 +186,7 @@ class QNet:
         #model_name = "model_%s"%(datetime.datetime.now().strftime("%m-%d-%H-%M"))
         model_name = "%dcycle_model_hoge"%(time)
         serializers.save_npz("./Model/%s"%(model_name),self.model)
-        print "----------------------------------------------"
-        print "model is saved!!(Model_Name=%s)"%(model_name)
-        print "----------------------------------------------"
+
 
     def load_model(self,model_name):
         serializers.load_npz("./Model/%s"%(model_name),self.model)
-        print "----------------------------------------------"
-        print "model load is done!!(Model_Name=%s)"%(model_name)
-        print "----------------------------------------------"

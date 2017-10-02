@@ -4,11 +4,13 @@ import six.moves.cPickle as pickle
 import copy
 import os
 import numpy as np
+
+import matplotlib.pyplot as plt
+
 from chainer import cuda
 
 from cnn_feature_extractor import CnnFeatureExtractor
 from q_net import QNet
-
 
 class CnnDqnAgent(object):
     policy_frozen = False
@@ -28,6 +30,7 @@ class CnnDqnAgent(object):
 
     # モデルを保存する頻度
     save_model_freq = 10000
+
 
     def _observation_to_featurevec(self, observation):
         # TODO clean
@@ -68,11 +71,15 @@ class CnnDqnAgent(object):
         self.q_net = QNet(self.use_gpu, self.actions, self.q_net_input_dim)
 
         test = options['test']
+
+        # Model Load
         if test:
-            print "----------This is TEST----------"
             self.policy_frozen = True
             model_name = options['model_name']
             self.q_net.load_model(model_name)
+            print "----------------------------------------------"
+            print "model load is done!!(Model_Name=%s)"%(model_name)
+            print "----------------------------------------------"
 
     # 行動取得系,state更新系メソッド
     def agent_start(self, observation, episode_num):
@@ -175,10 +182,14 @@ class CnnDqnAgent(object):
 
             if self.q_net.initial_exploration < self.time and np.mod(self.time,self.save_model_freq) == 0:
                 self.q_net.save_model(self.time)
+                print "----------------------------------------------"
+                print "model is saved!!(Model_Name=%s)"%(model_name)
+                print "----------------------------------------------"
 
-            self.time += 1
+        # Time count
+        self.time += 1
 
-   # 学習系メソッド
+    # 学習系メソッド
     def agent_end(self, reward):  # Episode Terminated
         print('episode finished. Reward:%.1f / Epsilon:%.6f' % (reward, self.epsilon))
 
@@ -192,9 +203,14 @@ class CnnDqnAgent(object):
             print("Model Updated")
             self.q_net.target_model_update()
 
-        # Time count
+
         if self.policy_frozen is False:
+            # Model Save
             if self.q_net.initial_exploration < self.time and np.mod(self.time,self.save_model_freq) == 0:
                 self.q_net.save_model(self.time)
+                print "----------------------------------------------"
+                print "model is saved!!(Model_Name=%s)"%(model_name)
+                print "----------------------------------------------"
 
-            self.time += 1
+        # Time count
+        self.time += 1

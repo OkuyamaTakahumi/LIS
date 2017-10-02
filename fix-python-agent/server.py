@@ -12,6 +12,29 @@ from PIL import ImageOps
 import threading
 import numpy as np
 
+import matplotlib.pyplot as plt
+#Q関数のplot
+def pause_Q_plot(q):
+    actions = [0,1,2]
+
+    plt.cla()
+
+    plt.xticks([0, 1, 2])
+    plt.xlabel("Action") # x軸のラベル
+    plt.ylabel("Q_Value") # y軸のラベル
+    plt.ylim(-1.1, 1.1)  # yを-1.1-1.1の範囲に限定
+    plt.xlim(-0.5, 2.5) # xを-0.5-2.5の範囲に限定
+    plt.hlines(y=0, xmin=-0.5, xmax= 2.5, colors='r', linewidths=2) #y=0の直線
+
+    max_q_abs = max(abs(q))
+    if max_q_abs > 0:
+        q = q / float(max_q_abs)
+
+    plt.bar(actions,q,align="center")
+
+    plt.pause(1.0 / 10**30) #引数はsleep時間
+
+
 print "----------------------------------"
 print "This is Okuyama's python-agent !!!"
 print "----------------------------------"
@@ -32,6 +55,13 @@ parser.add_argument('--model', '-m', default='best_model',
                     help='name of load model(default : best_model)')
 
 args = parser.parse_args()
+
+# Qの値を描画するキャンバス作成
+#if args.test:
+    #print "----------This is TEST----------"
+q = np.array([0,0,0])
+pause_Q_plot(q)
+
 
 
 class Root(object):
@@ -61,6 +91,7 @@ class AgentServer(WebSocket):
     depth_image_dim = 32 * 32
     depth_image_count = 1
 
+
     def send_action(self, action):
         dat = msgpack.packb({"command": str(action)})
         self.send(dat, binary=True)
@@ -82,17 +113,6 @@ class AgentServer(WebSocket):
         observation = {"image": image, "depth": depth}
         reward = dat['reward']
         end_episode = dat['endEpisode']
-
-        #np.save('./CameraImages/image.npy',np.asarray(observation["image"][0]))
-        #print ("SAVE COMPLETE")
-
-
-        #print 'image type : ',type(image[0])
-        #print 'depth[0].shape : ',depth[0].shape
-        #print 'depth[0] : ',depth[0]
-        #print 'reward type : ',type(reward)
-        #print 'endepisode type : ',type(end_episode)
-
 
         if not self.agent_initialized:
             self.agent_initialized = True
@@ -132,10 +152,19 @@ class AgentServer(WebSocket):
                 self.reward_sum = 0
             else:
                 action, eps, q_now, obs_array = self.agent.agent_step(reward, observation)
+
+
+                # draw Q value
+                #if args.test:
+                pause_Q_plot(q_now.ravel())
+
+
                 self.send_action(action)
                 self.agent.agent_step_update(reward, action, eps, q_now, obs_array)
 
         self.thread_event.set()
+
+
 
 cherrypy.config.update({'server.socket_host': args.ip,
                         'server.socket_port': args.port})
