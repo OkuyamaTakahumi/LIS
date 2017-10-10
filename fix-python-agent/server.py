@@ -32,7 +32,7 @@ def pause_Q_plot(q):
 
     plt.bar(actions,q,align="center")
 
-    plt.pause(1.0 / 10**30) #引数はsleep時間
+    plt.pause(1.0 / 10**10) #引数はsleep時間
 
 
 print "----------------------------------"
@@ -51,16 +51,29 @@ parser.add_argument('--log-file', '-l', default='reward.log', type=str,
 
 parser.add_argument('--test', '-t', action = "store_true",
                     help='TEST flags, False => Train')
+parser.add_argument('--draw', '-d', action = "store_true",
+                    help='Draw bar of Q-value flags')
+
+
+parser.add_argument('--succeed', '-s', default=0, type=int,
+                    help='Training Succeed to Model')
+
 parser.add_argument('--model', '-m', default='best_model',
                     help='name of load model(default : best_model)')
 
 args = parser.parse_args()
 
+'''
 # Qの値を描画するキャンバス作成
-if args.test:
-    print "----------This is TEST----------"
-    q = np.array([0,0,0])
-    pause_Q_plot(q)
+if args.draw:
+    #q = np.array([0,0,0])
+    #pause_Q_plot(q)
+
+    for i in range(50):
+        print i
+        q_now = np.random.rand(3)
+        #pause_Q_plot(q_now)
+'''
 
 
 
@@ -80,7 +93,7 @@ class AgentServer(WebSocket):
     agent = CnnDqnAgent()#cnn_dqn_agent.pyの中のCnnDqnAgentクラスのインスタンス
     agent_initialized = False
 
-    cycle_counter = 0#agentの行動回数、logファイルのX軸の値
+    cycle_counter = args.succeed#agentの行動回数、logファイルのX軸の値
     episode_num = 1 #行ったエピソードの数
 
     thread_event = threading.Event()#threading -> Eventの中にWait,Setがある
@@ -122,13 +135,14 @@ class AgentServer(WebSocket):
                 use_gpu=args.gpu,
                 depth_image_dim=self.depth_image_dim * self.depth_image_count,
                 test= args.test,
-                model_name = args.model)
+                model_name = args.model,
+                succeed_num = args.succeed)
 
             action = self.agent.agent_start(observation,self.episode_num)
             self.send_action(action)
 
-            if args.test is False:
-                #logファイルへの書き込み
+            #logファイルへの書き込み
+            if args.test is False and args.succeed<=0:
                 with open(self.log_file, 'w') as the_file:
                     the_file.write('cycle, episode_reward_sum \n')
 
@@ -144,17 +158,17 @@ class AgentServer(WebSocket):
                 action = self.agent.agent_start(observation,self.episode_num)  # TODO
                 self.send_action(action)
 
+                #logファイルへの書き込み
                 if args.test is False:
-                    #logファイルへの書き込み
                     with open(self.log_file, 'a') as the_file:
-                        the_file.write(str(self.cycle_counter) +
+                            the_file.write(str(self.cycle_counter) +
                                        ',' + str(self.reward_sum) + '\n')
                 self.reward_sum = 0
             else:
                 action, eps, q_now, obs_array = self.agent.agent_step(reward, observation)
 
                 # draw Q value
-                if args.test:
+                if args.draw:
                     pause_Q_plot(q_now.ravel())
 
 

@@ -18,6 +18,8 @@ class QNet:
     target_model_update_freq = 10**4  # Target update frequancy. original: 10^4
     data_size = 10**5  # Data size of history. original: 10^6
     hist_size = 1 #original: 4
+    # モデルを保存する頻度
+    save_model_freq = 10**4
 
     def __init__(self, use_gpu, enable_controller, dim):
         self.use_gpu = use_gpu
@@ -186,7 +188,12 @@ class QNet:
         #model_name = "model_%s"%(datetime.datetime.now().strftime("%m-%d-%H-%M"))
         model_name = "%dcycle_model_hoge"%(time)
         serializers.save_npz("./Model/%s"%(model_name),self.model)
+        print "model is saved!!(Model_Name=%s)"%(model_name)
+        print "----------------------------------------------"
 
 
     def load_model(self,model_name):
         serializers.load_npz("./Model/%s"%(model_name),self.model)
+        print "model load is done!!(Model_Name=%s)"%(model_name)
+        print "----------------------------------------------"
+        self.target_model_update()

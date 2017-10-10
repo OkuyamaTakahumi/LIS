@@ -60,12 +60,11 @@ RegularQ
 max_q_abs
 q
 
-
+'''
 import numpy as np
 import matplotlib.pyplot as plt
 
-print "unko"
-'''
+
 
 def pause_Q_plot(q):
 
@@ -81,7 +80,7 @@ def pause_Q_plot(q):
     plt.xlim(-0.5, 2.5) # xを2-15の範囲に限定
 
 
-    ax.bar(actions,q,align="center")
+    plt.bar(actions,q,align="center")
 
     # - plt.show() ブロッキングされてリアルタイムに描写できない
     # - plt.ion() + plt.draw() グラフウインドウが固まってプログラムが止まるから使えない
@@ -92,10 +91,10 @@ def pause_Q_plot(q):
 
 if __name__ == "__main__":
 
-    fig, ax = plt.subplots(1, 1)
+    #fig, ax = plt.subplots(1, 1)
 
     #ax.bar(actions,np.random.rand(3),align="center")
-    q_now = np.load('./q_now.npy')
+    #q_now = np.load('./q_now.npy')
     #print q_now.ravel()
 
     for i in range(50):

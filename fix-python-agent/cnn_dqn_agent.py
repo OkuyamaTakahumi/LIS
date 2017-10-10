@@ -28,9 +28,6 @@ class CnnDqnAgent(object):
     image_feature_dim = 256 * 6 * 6
     image_feature_count = 1
 
-    # モデルを保存する頻度
-    save_model_freq = 10000
-
 
     def _observation_to_featurevec(self, observation):
         # TODO clean
@@ -65,21 +62,31 @@ class CnnDqnAgent(object):
             pickle.dump(self.feature_extractor, open(self.cnn_feature_extractor, 'w'))
             print("pickle.dump finished")
 
-        self.time = 0
-        self.epsilon = 1.0  # Initial exploratoin rate
-
         self.q_net = QNet(self.use_gpu, self.actions, self.q_net_input_dim)
 
-        test = options['test']
+        succeed = options['succeed_num']
+        print "succeed = ",succeed
 
+        self.time = succeed
+        non_exploration = max(self.time - self.q_net.initial_exploration , 0)
+        self.epsilon = max(1.0 - non_exploration * self.epsilon_delta , self.min_eps)
+        print "epsilon = ",self.epsilon
+
+
+
+        test = options['test']
         # Model Load
         if test:
+            print "----------------This is TEST----------------"
             self.policy_frozen = True
             model_name = options['model_name']
             self.q_net.load_model(model_name)
-            print "----------------------------------------------"
-            print "model load is done!!(Model_Name=%s)"%(model_name)
-            print "----------------------------------------------"
+
+        elif(succeed>0):
+            print "----------Succeed to past Model--------------"
+            model_name = options['model_name']
+            self.q_net.load_model(model_name)
+
 
     # 行動取得系,state更新系メソッド
     def agent_start(self, observation, episode_num):
@@ -180,11 +187,10 @@ class CnnDqnAgent(object):
             self.last_action = copy.deepcopy(action)
             self.last_state = self.state.copy()
 
-            if self.q_net.initial_exploration < self.time and np.mod(self.time,self.save_model_freq) == 0:
+            # save model
+            if self.q_net.initial_exploration < self.time and np.mod(self.time,self.q_net.save_model_freq) == 0:
+                print "------------------Save Model------------------"
                 self.q_net.save_model(self.time)
-                print "----------------------------------------------"
-                print "model is saved!!(Model_Name=%s)"%(model_name)
-                print "----------------------------------------------"
 
         # Time count
         self.time += 1
@@ -206,11 +212,9 @@ class CnnDqnAgent(object):
 
         if self.policy_frozen is False:
             # Model Save
-            if self.q_net.initial_exploration < self.time and np.mod(self.time,self.save_model_freq) == 0:
+            if self.q_net.initial_exploration < self.time and np.mod(self.time,self.q_net.save_model_freq) == 0:
+                print "------------------Save Model------------------"
                 self.q_net.save_model(self.time)
-                print "----------------------------------------------"
-                print "model is saved!!(Model_Name=%s)"%(model_name)
-                print "----------------------------------------------"
 
         # Time count
         self.time += 1
