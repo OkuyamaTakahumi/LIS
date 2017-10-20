@@ -41,25 +41,28 @@ print "----------------------------------"
 
 parser = argparse.ArgumentParser(description='ml-agent-for-unity')
 parser.add_argument('--port', '-p', default='8765', type=int,
-                    help='websocket port')
+                    help=u'websocket port')
 parser.add_argument('--ip', '-i', default='127.0.0.1',
-                    help='server ip')
+                    help=u'server ip')
 parser.add_argument('--gpu', '-g', default=-1, type=int,
-                    help='GPU ID (negative value indicates CPU)')
+                    help=u'GPU ID (negative value indicates CPU)')
 parser.add_argument('--log-file', '-l', default='reward.log', type=str,
-                    help='reward log file name')
+                    help=u'reward log file name')
 
 parser.add_argument('--test', '-t', action = "store_true",
-                    help='TEST flags, False => Train')
+                    help=u'TEST flags, False => Train')
 parser.add_argument('--draw', '-d', action = "store_true",
-                    help='Draw bar of Q-value flags')
+                    help=u'Draw bar of Q-value flags')
 
 
 parser.add_argument('--succeed', '-s', default=0, type=int,
-                    help='Training Succeed to Model')
+                    help=u'cnn_dqn_agentのStep数やepsilon,ModelNameがこの値で決まる')
+
+parser.add_argument('--episode', '-e', default=0, type=int,
+                    help=u'logファイルに書き込む際のエピソードの数,cnn_dqn_agentとは関係なし')
 
 parser.add_argument('--model', '-m', default='best_model',
-                    help='name of load model(default : best_model)')
+                    help=u'name of load model(default : best_model)')
 
 args = parser.parse_args()
 
@@ -93,12 +96,12 @@ class AgentServer(WebSocket):
     agent = CnnDqnAgent()#cnn_dqn_agent.pyの中のCnnDqnAgentクラスのインスタンス
     agent_initialized = False
 
-    cycle_counter = args.succeed#agentの行動回数、logファイルのX軸の値
-    episode_num = 1 #行ったエピソードの数
+    #cycle_counter = args.succeed#agentの行動回数、logファイルのX軸の値
+    episode_num = args.episode #行ったエピソードの数
 
     thread_event = threading.Event()#threading -> Eventの中にWait,Setがある
     log_file = args.log_file
-    reward_sum = 0
+    #reward_sum = 0
 
     #depthImageをベクトルreshape,agent_initの引数に使用
     depth_image_dim = 32 * 32
@@ -127,6 +130,8 @@ class AgentServer(WebSocket):
         reward = dat['reward']
         end_episode = dat['endEpisode']
 
+        lastZ = dat['lastZ']
+
         if not self.agent_initialized:
             self.agent_initialized = True
             print ("initializing agent...")
@@ -144,15 +149,16 @@ class AgentServer(WebSocket):
             #logファイルへの書き込み
             if args.test is False and args.succeed<=0:
                 with open(self.log_file, 'w') as the_file:
-                    the_file.write('cycle, episode_reward_sum \n')
+                    the_file.write('Episode, Score \n')
 
         else:
             self.thread_event.wait()
-            self.cycle_counter += 1
-            self.reward_sum += reward
+            #self.cycle_counter += 1
+            #self.reward_sum += reward
 
             if end_episode:
-                self.agent.agent_end(reward)
+
+                self.agent.agent_end(reward,lastZ)
 
                 self.episode_num += 1
                 action = self.agent.agent_start(observation,self.episode_num)  # TODO
@@ -161,9 +167,12 @@ class AgentServer(WebSocket):
                 #logファイルへの書き込み
                 if args.test is False:
                     with open(self.log_file, 'a') as the_file:
-                            the_file.write(str(self.cycle_counter) +
-                                       ',' + str(self.reward_sum) + '\n')
-                self.reward_sum = 0
+                            #the_file.write(str(self.cycle_counter) +
+                            the_file.write(str(self.episode_num) +
+                                       #',' + str(self.reward_sum) + '\n')
+                                       ',' + str(lastZ) + '\n')
+                #self.reward_sum = 0
+
             else:
                 action, eps, q_now, obs_array = self.agent.agent_step(reward, observation)
 

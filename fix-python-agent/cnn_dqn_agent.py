@@ -196,8 +196,10 @@ class CnnDqnAgent(object):
         self.time += 1
 
     # 学習系メソッド
-    def agent_end(self, reward):  # Episode Terminated
+    def agent_end(self, reward, lastZ):  # Episode Terminated
         print('episode finished. Reward:%.1f / Epsilon:%.6f' % (reward, self.epsilon))
+
+        print "Last Player's Z is %d"%(lastZ)
 
         # Learning Phase
         if self.policy_frozen is False:  # Learning ON/OFF

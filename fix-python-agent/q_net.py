@@ -193,7 +193,7 @@ class QNet:
 
 
     def load_model(self,model_name):
-        serializers.load_npz("./Model/%s"%(model_name),self.model)
+        serializers.load_npz("./%s"%(model_name),self.model)
         print "model load is done!!(Model_Name=%s)"%(model_name)
         print "----------------------------------------------"
         self.target_model_update()
