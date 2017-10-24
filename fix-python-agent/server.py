@@ -56,12 +56,12 @@ parser.add_argument('--draw', '-d', action = "store_true",
 
 
 parser.add_argument('--succeed', '-s', default=0, type=int,
-                    help=u'cnn_dqn_agentのStep数やepsilon,ModelNameがこの値で決まる')
+                    help=u'cycle_counterの値, cnn_dqn_agentのStep数やepsilon,ModelNameがこの値で決まる')
 
 parser.add_argument('--episode', '-e', default=0, type=int,
                     help=u'logファイルに書き込む際のエピソードの数,cnn_dqn_agentとは関係なし')
 
-parser.add_argument('--model', '-m', default='best_model',
+parser.add_argument('--model', '-m', default='Model/best_model',
                     help=u'name of load model(default : best_model)')
 
 args = parser.parse_args()
@@ -96,7 +96,7 @@ class AgentServer(WebSocket):
     agent = CnnDqnAgent()#cnn_dqn_agent.pyの中のCnnDqnAgentクラスのインスタンス
     agent_initialized = False
 
-    #cycle_counter = args.succeed#agentの行動回数、logファイルのX軸の値
+    cycle_counter = args.succeed#agentの行動回数、logファイルのX軸の値
     episode_num = args.episode #行ったエピソードの数
 
     thread_event = threading.Event()#threading -> Eventの中にWait,Setがある
@@ -147,13 +147,14 @@ class AgentServer(WebSocket):
             self.send_action(action)
 
             #logファイルへの書き込み
-            if args.test is False and args.succeed<=0:
+            #if args.test is False and args.succeed<=0:
+            if args.succeed<=0:
                 with open(self.log_file, 'w') as the_file:
-                    the_file.write('Episode, Score \n')
+                    the_file.write('Cycle,Score,Episode \n')
 
         else:
             self.thread_event.wait()
-            #self.cycle_counter += 1
+            self.cycle_counter += 1
             #self.reward_sum += reward
 
             if end_episode:
@@ -165,12 +166,11 @@ class AgentServer(WebSocket):
                 self.send_action(action)
 
                 #logファイルへの書き込み
-                if args.test is False:
-                    with open(self.log_file, 'a') as the_file:
-                            #the_file.write(str(self.cycle_counter) +
-                            the_file.write(str(self.episode_num) +
-                                       #',' + str(self.reward_sum) + '\n')
-                                       ',' + str(lastZ) + '\n')
+                #if args.test is False:
+                with open(self.log_file, 'a') as the_file:
+                    the_file.write(str(self.cycle_counter) +
+                               ',' + str(lastZ) +
+                               ',' + str(self.episode_num) + '\n')
                 #self.reward_sum = 0
 
             else:
