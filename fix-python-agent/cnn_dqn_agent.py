@@ -72,19 +72,25 @@ class CnnDqnAgent(object):
         self.epsilon = max(1.0 - non_exploration * self.epsilon_delta , self.min_eps)
         print "epsilon = ",self.epsilon
 
-
-
         test = options['test']
+
+
+        model_name = options['model_name']
+        #print "ok"
+        self.model_load(test,succeed,model_name)
+        #print "ok ok ok"
+
+    def model_load(self,test,suceed,model_name):
         # Model Load
         if test:
             print "----------------This is TEST----------------"
             self.policy_frozen = True
-            model_name = options['model_name']
+            #print "model_name = ",model_name
             self.q_net.load_model(model_name)
+            #print "ok ok"
 
         elif(succeed>0):
             print "----------Succeed to past Model--------------"
-            model_name = options['model_name']
             self.q_net.load_model(model_name)
 
 

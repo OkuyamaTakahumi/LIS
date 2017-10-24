@@ -1,5 +1,5 @@
 sample-environment
-fix-python-agent/Model*/*_hoge*
+fix-python-agent/Model*
 photo/
 
 fetch.sh

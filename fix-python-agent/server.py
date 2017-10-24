@@ -58,7 +58,7 @@ parser.add_argument('--draw', '-d', action = "store_true",
 parser.add_argument('--succeed', '-s', default=0, type=int,
                     help=u'cycle_counterの値, cnn_dqn_agentのStep数やepsilon,ModelNameがこの値で決まる')
 
-parser.add_argument('--episode', '-e', default=0, type=int,
+parser.add_argument('--episode', '-e', default=1, type=int,
                     help=u'logファイルに書き込む際のエピソードの数,cnn_dqn_agentとは関係なし')
 
 parser.add_argument('--model', '-m', default='Model/best_model',
@@ -101,11 +101,14 @@ class AgentServer(WebSocket):
 
     thread_event = threading.Event()#threading -> Eventの中にWait,Setがある
     log_file = args.log_file
+    model_name = args.model
     #reward_sum = 0
 
     #depthImageをベクトルreshape,agent_initの引数に使用
     depth_image_dim = 32 * 32
     depth_image_count = 1
+
+    model_num = 10000
 
 
     def send_action(self, action):
@@ -140,7 +143,7 @@ class AgentServer(WebSocket):
                 use_gpu=args.gpu,
                 depth_image_dim=self.depth_image_dim * self.depth_image_count,
                 test= args.test,
-                model_name = args.model,
+                model_name = self.model_name,
                 succeed_num = args.succeed)
 
             action = self.agent.agent_start(observation,self.episode_num)
@@ -158,12 +161,7 @@ class AgentServer(WebSocket):
             #self.reward_sum += reward
 
             if end_episode:
-
                 self.agent.agent_end(reward,lastZ)
-
-                self.episode_num += 1
-                action = self.agent.agent_start(observation,self.episode_num)  # TODO
-                self.send_action(action)
 
                 #logファイルへの書き込み
                 #if args.test is False:
@@ -172,6 +170,28 @@ class AgentServer(WebSocket):
                                ',' + str(lastZ) +
                                ',' + str(self.episode_num) + '\n')
                 #self.reward_sum = 0
+
+
+                if(args.test and self.episode_num % 20 == 0):
+                    #self.episode_num = 0
+                    self.cycle_counter = 0
+
+                    self.model_num += 10000
+                    self.model_name = "Model/%dcycle_model_hoge"%(self.model_num)
+                    #print "ok ok ok ok"
+
+                    self.agent.model_load(args.test, args.succeed, self.model_name)
+                    #self.log_file = "reward%d.log"%(self.model_num)
+                    #with open(self.log_file, 'w') as the_file:
+                        #the_file.write('Cycle,Score,Episode \n')
+                    #print "ok ok ok ok ok ok"
+
+
+                self.episode_num += 1
+                action = self.agent.agent_start(observation,self.episode_num)  # TODO
+                self.send_action(action)
+
+
 
             else:
                 action, eps, q_now, obs_array = self.agent.agent_step(reward, observation)
