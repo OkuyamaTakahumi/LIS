@@ -8,9 +8,11 @@ parser.add_argument('--log-file', '-l', default='reward.log', type=str,
 args = parser.parse_args()
 
 df = pd.read_csv(args.log_file)
-x = df.columns[0]
+
+x = df.columns[2]
 y = df.columns[1]
 ax = df.plot(kind='scatter', x=x, y=y)
+
 df[y] = pd.rolling_mean(df[y], window=20)
 df.plot(kind='line', x=x, y=y, ax=ax)
 plt.show()
