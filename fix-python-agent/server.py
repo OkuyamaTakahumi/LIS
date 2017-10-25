@@ -162,7 +162,6 @@ class AgentServer(WebSocket):
                 self.agent.agent_end(reward,lastZ)
 
                 #logファイルへの書き込み
-                #if args.test is False:
                 with open(self.log_file, 'a') as the_file:
                     the_file.write(str(self.cycle_counter) +
                                ',' + str(lastZ) +
@@ -170,18 +169,14 @@ class AgentServer(WebSocket):
                 #self.reward_sum = 0
 
 
-                if(args.test and self.episode_num % 2 == 0):
+                if(args.test and self.episode_num % 50 == 0):
                     #self.episode_num = 0
                     self.cycle_counter = 0
 
                     self.model_num += 10000
                     self.model_name = "%dmodel"%(self.model_num)
 
-                    #self.agent.model_load(self.model_num)
                     self.agent.q_net.load_model(self.model_num)
-                    #self.log_file = "reward%d.log"%(self.model_num)
-                    #with open(self.log_file, 'w') as the_file:
-                        #the_file.write('Cycle,Score,Episode \n')
 
 
                 self.episode_num += 1
