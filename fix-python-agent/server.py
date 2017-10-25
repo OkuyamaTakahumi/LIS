@@ -181,7 +181,7 @@ class AgentServer(WebSocket):
                     #self.episode_num = 0
                     self.cycle_counter = 0
                     self.model_num += 10000
-                    self.agent.q_net.load_model(self.model_num,velocity)
+                    self.agent.q_net.load_model(self.model_num,self.velocity)
 
                 self.episode_num += 1
                 action = self.agent.agent_start(observation,self.episode_num)  # TODO
