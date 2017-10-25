@@ -186,14 +186,15 @@ class QNet:
 
     def save_model(self,time):
         #model_name = "model_%s"%(datetime.datetime.now().strftime("%m-%d-%H-%M"))
-        model_name = "%dcycle_model"%(time)
+        model_name = "%dmodel"%(time)
         serializers.save_npz("./Model/%s"%(model_name),self.model)
         print "model is saved!!(Model_Name=%s)"%(model_name)
         print "----------------------------------------------"
 
 
-    def load_model(self,model_name):
+    def load_model(self,model_num):
         try:
+            model_name = "%dmodel"%(model_num)
             serializers.load_npz("./Model/%s"%(model_name),self.model)
         except:
             import traceback

@@ -64,34 +64,20 @@ class CnnDqnAgent(object):
 
         self.q_net = QNet(self.use_gpu, self.actions, self.q_net_input_dim)
 
-        succeed = options['succeed_num']
-        print "succeed = ",succeed
+        test = options['test']
+        self.policy_frozen = test
 
-        self.time = succeed
+        succeed = options['succeed']
+
+        model_num = options['model_num']
+        self.time = model_num
         non_exploration = max(self.time - self.q_net.initial_exploration , 0)
         self.epsilon = max(1.0 - non_exploration * self.epsilon_delta , self.min_eps)
         print "epsilon = ",self.epsilon
 
-        test = options['test']
-
-
-        model_name = options['model_name']
-        #print "ok"
-        self.model_load(test,succeed,model_name)
-        #print "ok ok ok"
-
-    def model_load(self,test,suceed,model_name):
-        # Model Load
-        if test:
-            print "----------------This is TEST----------------"
-            self.policy_frozen = True
-            #print "model_name = ",model_name
-            self.q_net.load_model(model_name)
-            #print "ok ok"
-
-        elif(succeed>0):
-            print "----------Succeed to past Model--------------"
-            self.q_net.load_model(model_name)
+        if(test or succeed):
+            #self.model_load(model_num)
+            self.q_net.load_model(model_num)
 
 
     # 行動取得系,state更新系メソッド

@@ -49,20 +49,18 @@ parser.add_argument('--gpu', '-g', default=-1, type=int,
 parser.add_argument('--log-file', '-l', default='reward.log', type=str,
                     help=u'reward log file name')
 
-parser.add_argument('--test', '-t', action = "store_true",
-                    help=u'TEST flags, False => Train')
 parser.add_argument('--draw', '-d', action = "store_true",
-                    help=u'Draw bar of Q-value flags')
-
-
-parser.add_argument('--succeed', '-s', default=0, type=int,
-                    help=u'cycle_counterの値, cnn_dqn_agentのStep数やepsilon,ModelNameがこの値で決まる')
-
+                    help=u'Draw Bar of Q-value flags')
+parser.add_argument('--test', '-t', action = "store_true",
+                    help=u'TEST frags, False => Train')
+parser.add_argument('--succeed', '-s', action = "store_true",
+                    help=u'Modelを引き継いでトレーニングをするか')
+parser.add_argument('--model_num', '-m', default=0,type=int,
+                    help=u'最初にロードするモデルの番号')
 parser.add_argument('--episode', '-e', default=1, type=int,
-                    help=u'logファイルに書き込む際のエピソードの数,cnn_dqn_agentとは関係なし')
+                    help=u'logファイルに書き込む際のエピソードの数')
 
-parser.add_argument('--model', '-m', default='Model/best_model',
-                    help=u'name of load model(default : best_model)')
+
 
 args = parser.parse_args()
 
@@ -96,19 +94,21 @@ class AgentServer(WebSocket):
     agent = CnnDqnAgent()#cnn_dqn_agent.pyの中のCnnDqnAgentクラスのインスタンス
     agent_initialized = False
 
-    cycle_counter = args.succeed#agentの行動回数、logファイルのX軸の値
-    episode_num = args.episode #行ったエピソードの数
-
     thread_event = threading.Event()#threading -> Eventの中にWait,Setがある
-    log_file = args.log_file
-    model_name = args.model
     #reward_sum = 0
 
     #depthImageをベクトルreshape,agent_initの引数に使用
     depth_image_dim = 32 * 32
     depth_image_count = 1
 
-    model_num = 10000
+    log_file = args.log_file
+    gpu = args.gpu
+    draw = args.draw
+    test = args.test
+    succeed = args.succeed
+    model_num = args.model_num
+    episode_num = args.episode #行ったエピソードの数
+    cycle_counter = model_num #agentの行動回数、logファイルのX軸の値
 
 
     def send_action(self, action):
@@ -118,7 +118,6 @@ class AgentServer(WebSocket):
     def received_message(self, m):
         payload = m.data
         dat = msgpack.unpackb(payload)
-
 
         image = []
         for i in xrange(self.depth_image_count):
@@ -140,18 +139,17 @@ class AgentServer(WebSocket):
             print ("initializing agent...")
             #depth_image_dimが引数で使われるのはここだけ
             self.agent.agent_init(
-                use_gpu=args.gpu,
+                use_gpu=self.gpu,
                 depth_image_dim=self.depth_image_dim * self.depth_image_count,
-                test= args.test,
-                model_name = self.model_name,
-                succeed_num = args.succeed)
+                test= self.test,
+                succeed = self.succeed,
+                model_num = self.model_num)
 
             action = self.agent.agent_start(observation,self.episode_num)
             self.send_action(action)
 
             #logファイルへの書き込み
-            #if args.test is False and args.succeed<=0:
-            if args.succeed<=0:
+            if not self.succeed:
                 with open(self.log_file, 'w') as the_file:
                     the_file.write('Cycle,Score,Episode \n')
 
@@ -172,19 +170,18 @@ class AgentServer(WebSocket):
                 #self.reward_sum = 0
 
 
-                if(args.test and self.episode_num % 20 == 0):
+                if(args.test and self.episode_num % 2 == 0):
                     #self.episode_num = 0
                     self.cycle_counter = 0
 
                     self.model_num += 10000
-                    self.model_name = "%dcycle_model_hoge"%(self.model_num)
-                    #print "ok ok ok ok"
+                    self.model_name = "%dmodel"%(self.model_num)
 
-                    self.agent.model_load(args.test, args.succeed, self.model_name)
+                    #self.agent.model_load(self.model_num)
+                    self.agent.q_net.load_model(self.model_num)
                     #self.log_file = "reward%d.log"%(self.model_num)
                     #with open(self.log_file, 'w') as the_file:
                         #the_file.write('Cycle,Score,Episode \n')
-                    #print "ok ok ok ok ok ok"
 
 
                 self.episode_num += 1
