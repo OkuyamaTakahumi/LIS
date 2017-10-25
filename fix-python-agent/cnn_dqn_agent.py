@@ -65,19 +65,19 @@ class CnnDqnAgent(object):
         self.q_net = QNet(self.use_gpu, self.actions, self.q_net_input_dim)
 
         test = options['test']
+        succeed = options['succeed']
+        model_num = options['model_num']
+        self.velocity = options["velocity"] #save_modelでもしようするため,selfをつけた
+
         self.policy_frozen = test
 
-        succeed = options['succeed']
-
-        model_num = options['model_num']
         self.time = model_num
         non_exploration = max(self.time - self.q_net.initial_exploration , 0)
         self.epsilon = max(1.0 - non_exploration * self.epsilon_delta , self.min_eps)
         print "epsilon = ",self.epsilon
 
         if(test or succeed):
-            #self.model_load(model_num)
-            self.q_net.load_model(model_num)
+            self.q_net.load_model(model_num,self.velocity)
 
 
     # 行動取得系,state更新系メソッド
@@ -182,7 +182,7 @@ class CnnDqnAgent(object):
             # save model
             if self.q_net.initial_exploration < self.time and np.mod(self.time,self.q_net.save_model_freq) == 0:
                 print "------------------Save Model------------------"
-                self.q_net.save_model(self.time)
+                self.q_net.save_model(self.time,self.velocity)
 
         # Time count
         self.time += 1

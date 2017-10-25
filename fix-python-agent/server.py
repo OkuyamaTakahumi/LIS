@@ -35,10 +35,6 @@ def pause_Q_plot(q):
     plt.pause(1.0 / 10**10) #引数はsleep時間
 
 
-print "----------------------------------"
-print "This is Okuyama's python-agent !!!"
-print "----------------------------------"
-
 parser = argparse.ArgumentParser(description='ml-agent-for-unity')
 parser.add_argument('--port', '-p', default='8765', type=int,
                     help=u'websocket port')
@@ -46,17 +42,20 @@ parser.add_argument('--ip', '-i', default='127.0.0.1',
                     help=u'server ip')
 parser.add_argument('--gpu', '-g', default=-1, type=int,
                     help=u'GPU ID (negative value indicates CPU)')
-parser.add_argument('--log-file', '-l', default='reward.log', type=str,
-                    help=u'reward log file name')
+
 
 parser.add_argument('--draw', '-d', action = "store_true",
                     help=u'Draw Bar of Q-value flags')
+parser.add_argument('--log-file', '-l', default='reward.log', type=str,
+                    help=u'reward log file name')
 parser.add_argument('--test', '-t', action = "store_true",
                     help=u'TEST frags, False => Train')
 parser.add_argument('--succeed', '-s', action = "store_true",
                     help=u'Modelを引き継いでトレーニングをするか')
 parser.add_argument('--model_num', '-m', default=0,type=int,
                     help=u'最初にロードするモデルの番号')
+parser.add_argument('--velocity', '-v', default=0,type=int,
+                    help=u'Agentの速度')
 parser.add_argument('--episode', '-e', default=1, type=int,
                     help=u'logファイルに書き込む際のエピソードの数')
 
@@ -107,8 +106,16 @@ class AgentServer(WebSocket):
     test = args.test
     succeed = args.succeed
     model_num = args.model_num
+    velocity = args.velocity
     episode_num = args.episode #行ったエピソードの数
     cycle_counter = model_num #agentの行動回数、logファイルのX軸の値
+
+    print u"------------------------------------------------"
+    print u"Velocity = %d"%(velocity)
+    print u"Unity側のAgentのMaxSpeedがあってるか確認"
+    print u"./Model%dディレクトリが存在するか確認"%(velocity)
+    print u"logファイルがあってるか確認"
+    print u"------------------------------------------------"
 
 
     def send_action(self, action):
@@ -143,7 +150,8 @@ class AgentServer(WebSocket):
                 depth_image_dim=self.depth_image_dim * self.depth_image_count,
                 test= self.test,
                 succeed = self.succeed,
-                model_num = self.model_num)
+                model_num = self.model_num,
+                velocity = self.velocity)
 
             action = self.agent.agent_start(observation,self.episode_num)
             self.send_action(action)
@@ -172,18 +180,12 @@ class AgentServer(WebSocket):
                 if(args.test and self.episode_num % 50 == 0):
                     #self.episode_num = 0
                     self.cycle_counter = 0
-
                     self.model_num += 10000
-                    self.model_name = "%dmodel"%(self.model_num)
-
-                    self.agent.q_net.load_model(self.model_num)
-
+                    self.agent.q_net.load_model(self.model_num,velocity)
 
                 self.episode_num += 1
                 action = self.agent.agent_start(observation,self.episode_num)  # TODO
                 self.send_action(action)
-
-
 
             else:
                 action, eps, q_now, obs_array = self.agent.agent_step(reward, observation)

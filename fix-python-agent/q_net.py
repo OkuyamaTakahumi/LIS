@@ -12,7 +12,6 @@ class QNet:
 
     #最初に1000回ランダムに行動
     initial_exploration = 10**3  # Initial exploratoin. original: 5x10^4
-    #initial_exploration = 10  # Initial exploratoin. original: 5x10^4
 
     replay_size = 32  # Replay (batch) size
     target_model_update_freq = 10**4  # Target update frequancy. original: 10^4
@@ -20,6 +19,7 @@ class QNet:
     hist_size = 1 #original: 4
     # モデルを保存する頻度
     save_model_freq = 10**4
+
 
     def __init__(self, use_gpu, enable_controller, dim):
         self.use_gpu = use_gpu
@@ -184,22 +184,25 @@ class QNet:
     def action_to_index(self, action):
         return self.enable_controller.index(action)
 
-    def save_model(self,time):
-        #model_name = "model_%s"%(datetime.datetime.now().strftime("%m-%d-%H-%M"))
-        model_name = "%dmodel"%(time)
-        serializers.save_npz("./Model/%s"%(model_name),self.model)
-        print "model is saved!!(Model_Name=%s)"%(model_name)
+    def save_model(self,time,velocity):
+        try:
+            model_path = "./Model%d/%dmodel"%(velocity,time)
+            serializers.save_npz(model_path,self.model)
+        except:
+            import traceback
+            traceback.print_exc()
+        print "model is saved!!(Model_Path=%s)"%(model_path)
         print "----------------------------------------------"
 
 
-    def load_model(self,model_num):
+    def load_model(self,model_num,velocity):
         try:
-            model_name = "%dmodel"%(model_num)
-            serializers.load_npz("./Model/%s"%(model_name),self.model)
+            model_path = "./Model%d/%dmodel"%(velocity,model_num)
+            serializers.load_npz(model_path,self.model)
         except:
             import traceback
             traceback.print_exc()
 
-        print "model load is done!!(Model_Name=%s)"%(model_name)
+        print "model load is done!!(Model_Path=%s)"%(model_path)
         print "----------------------------------------------"
         self.target_model_update()
