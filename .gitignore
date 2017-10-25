@@ -1,5 +1,5 @@
 sample-environment
-fix-python-agent/Model/*_hoge*
+fix-python-agent/Model*
 photo/
 
 fetch.sh
@@ -328,5 +328,3 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
-
-
