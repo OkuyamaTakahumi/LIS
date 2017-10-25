@@ -177,7 +177,7 @@ class AgentServer(WebSocket):
                     self.cycle_counter = 0
 
                     self.model_num += 10000
-                    self.model_name = "Model/%dcycle_model_hoge"%(self.model_num)
+                    self.model_name = "%dcycle_model_hoge"%(self.model_num)
                     #print "ok ok ok ok"
 
                     self.agent.model_load(args.test, args.succeed, self.model_name)
