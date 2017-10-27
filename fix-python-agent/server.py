@@ -179,7 +179,7 @@ class AgentServer(WebSocket):
 
                 if(args.test and self.episode_num % 50 == 0):
                     #self.episode_num = 0
-                    #self.cycle_counter = 0
+                    self.cycle_counter = 0
                     self.model_num += 10000
                     self.agent.q_net.load_model(self.model_num,self.velocity)
 
