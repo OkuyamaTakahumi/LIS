@@ -139,7 +139,7 @@ class AgentServer(WebSocket):
         reward = dat['reward']
         end_episode = dat['endEpisode']
 
-        lastZ = dat['lastZ']
+        lastZ = dat['score']
 
         if not self.agent_initialized:
             self.agent_initialized = True
