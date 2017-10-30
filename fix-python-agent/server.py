@@ -108,7 +108,7 @@ class AgentServer(WebSocket):
     model_num = args.model_num
     velocity = args.velocity
     episode_num = args.episode #行ったエピソードの数
-    cycle_counter = model_num #agentの行動回数、logファイルのX軸の値
+    cycle_counter = 0 #agentの行動回数、logファイルのX軸の値
 
     print u"------------------------------------------------"
     print u"Velocity = %d"%(velocity)
