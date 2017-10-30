@@ -32,8 +32,16 @@ class CnnDqnAgent(object):
     def _observation_to_featurevec(self, observation):
         # TODO clean
         if self.image_feature_count == 1:
-            return np.r_[self.feature_extractor.feature(observation["image"][0]),
-                         observation["depth"][0]]
+            '''
+            ----------------------変更！！！----------------------
+            '''
+            #return np.r_[self.feature_extractor.feature(observation["image"][0]),
+                         #observation["depth"][0]]
+            return self.feature_extractor.feature(observation["image"][0])
+            '''
+            ------------------------------------------------------
+            '''
+
         elif self.image_feature_count == 4:
             return np.r_[self.feature_extractor.feature(observation["image"][0]),
                          self.feature_extractor.feature(observation["image"][1]),
@@ -50,7 +58,15 @@ class CnnDqnAgent(object):
         self.use_gpu = options['use_gpu']
         self.depth_image_dim = options['depth_image_dim']
 
-        self.q_net_input_dim = self.image_feature_dim * self.image_feature_count + self.depth_image_dim
+        '''
+        ----------------------変更！！！----------------------
+        '''
+        #self.q_net_input_dim = self.image_feature_dim * self.image_feature_count + self.depth_image_dim
+        self.q_net_input_dim = self.image_feature_dim * self.image_feature_count
+        '''
+        ------------------------------------------------------
+        '''
+
 
         if os.path.exists(self.cnn_feature_extractor):
             print("loading... " + self.cnn_feature_extractor),
