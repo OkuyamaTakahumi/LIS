@@ -139,7 +139,7 @@ class AgentServer(WebSocket):
         reward = dat['reward']
         end_episode = dat['endEpisode']
 
-        lastZ = dat['score']
+        score = dat['score']
 
         if not self.agent_initialized:
             self.agent_initialized = True
@@ -167,12 +167,12 @@ class AgentServer(WebSocket):
             #self.reward_sum += reward
 
             if end_episode:
-                self.agent.agent_end(reward,lastZ)
+                self.agent.agent_end(reward,score)
 
                 #logファイルへの書き込み
                 with open(self.log_file, 'a') as the_file:
                     the_file.write(str(self.cycle_counter) +
-                               ',' + str(lastZ) +
+                               ',' + str(score) +
                                ',' + str(self.episode_num) + '\n')
                 #self.reward_sum = 0
 
