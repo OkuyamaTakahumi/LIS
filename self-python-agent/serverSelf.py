@@ -4,7 +4,7 @@ import cherrypy
 import argparse
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
-from cnn_dqn_agent import CnnDqnAgent
+from cnn_dqn_agentSelf import CnnDqnAgent
 import msgpack
 import io
 from PIL import Image
@@ -108,7 +108,7 @@ class AgentServer(WebSocket):
     model_num = args.model_num
     velocity = args.velocity
     episode_num = args.episode #行ったエピソードの数
-    cycle_counter = 0 #agentの行動回数、logファイルのX軸の値
+    cycle_counter = model_num #agentの行動回数、logファイルのX軸の値
 
     print u"------------------------------------------------"
     print u"Velocity = %d"%(velocity)
