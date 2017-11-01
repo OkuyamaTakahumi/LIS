@@ -216,22 +216,26 @@ class CnnDqnAgent(object):
 
         print "Score is %d"%(score)
 
-        # Learning Phase
-        if self.policy_frozen is False:  # Learning ON/OFF
-            self.q_net.stock_experience(self.time, self.last_state, self.last_action, reward, self.last_state,True)
-            self.q_net.experience_replay(self.time)
+        try:
+            # Learning Phase
+            if self.policy_frozen is False:  # Learning ON/OFF
+                self.q_net.stock_experience(self.time, self.last_state, self.last_action, reward, self.last_state,True)
+                self.q_net.experience_replay(self.time)
 
-        # Target model update
-        if self.q_net.initial_exploration < self.time and np.mod(self.time, self.q_net.target_model_update_freq) == 0:
-            print("Model Updated")
-            self.q_net.target_model_update()
+            # Target model update
+            if self.q_net.initial_exploration < self.time and np.mod(self.time, self.q_net.target_model_update_freq) == 0:
+                print("Model Updated")
+                self.q_net.target_model_update()
 
 
-        if self.policy_frozen is False:
-            # Model Save
-            if self.q_net.initial_exploration < self.time and np.mod(self.time,self.q_net.save_model_freq) == 0:
-                print "------------------Save Model------------------"
-                self.q_net.save_model(self.time)
+            if self.policy_frozen is False:
+                # Model Save
+                if self.q_net.initial_exploration < self.time and np.mod(self.time,self.q_net.save_model_freq) == 0:
+                    print "------------------Save Model------------------"
+                    self.q_net.save_model(self.time)
 
-        # Time count
-        self.time += 1
+            # Time count
+            self.time += 1
+        except:
+            import traceback
+            traceback.print_exc()

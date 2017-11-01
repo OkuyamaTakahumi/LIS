@@ -166,13 +166,16 @@ class AgentServer(WebSocket):
 
             if end_episode:
                 self.agent.agent_end(reward,self.reward_sum)
-
-                #logファイルへの書き込み
-                with open(self.log_file, 'a') as the_file:
-                    the_file.write(str(self.cycle_counter) +
-                               ',' + str(reward_sum) +
-                               ',' + str(self.episode_num) + '\n')
-                self.reward_sum = 0
+                try:
+                    #logファイルへの書き込み
+                    with open(self.log_file, 'a') as the_file:
+                        the_file.write(str(self.cycle_counter) +
+                                   ',' + str(self.reward_sum) +
+                                   ',' + str(self.episode_num) + '\n')
+                    self.reward_sum = 0
+                except:
+                    import traceback
+                    traceback.print_exc()
 
 
                 if(args.test and self.episode_num % 50 == 0):
