@@ -15,7 +15,14 @@ from q_netRobo import QNet
 class CnnDqnAgent(object):
     policy_frozen = False
     #deltaの減少量
+    '''
+    ----------------------変更！！！----------------------
+    '''
     epsilon_delta = 1.0 / 10 ** 4.4
+    #epsilon_delta = 1.0 / 100 ** 4.4
+    '''
+    ------------------------------------------------------
+    '''
     #deltaの最小値
     min_eps = 0.1
     #アクションリスト(数字じゃなくても大丈夫)
@@ -204,10 +211,10 @@ class CnnDqnAgent(object):
         self.time += 1
 
     # 学習系メソッド
-    def agent_end(self, reward, lastZ):  # Episode Terminated
+    def agent_end(self, reward, score):  # Episode Terminated
         print('episode finished. Reward:%.1f / Epsilon:%.6f' % (reward, self.epsilon))
 
-        print "Episode time is %d"%(lastZ)
+        print "Score is %d"%(score)
 
         # Learning Phase
         if self.policy_frozen is False:  # Learning ON/OFF

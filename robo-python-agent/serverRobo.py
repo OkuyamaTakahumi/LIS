@@ -94,7 +94,7 @@ class AgentServer(WebSocket):
     agent_initialized = False
 
     thread_event = threading.Event()#threading -> Eventの中にWait,Setがある
-    #reward_sum = 0
+    reward_sum = 0
 
     #depthImageをベクトルreshape,agent_initの引数に使用
     depth_image_dim = 32 * 32
@@ -139,8 +139,6 @@ class AgentServer(WebSocket):
         reward = dat['reward']
         end_episode = dat['endEpisode']
 
-        score = dat['score']
-
         if not self.agent_initialized:
             self.agent_initialized = True
             print ("initializing agent...")
@@ -164,17 +162,17 @@ class AgentServer(WebSocket):
         else:
             self.thread_event.wait()
             self.cycle_counter += 1
-            #self.reward_sum += reward
+            self.reward_sum += reward
 
             if end_episode:
-                self.agent.agent_end(reward,score)
+                self.agent.agent_end(reward,reward_sum)
 
                 #logファイルへの書き込み
                 with open(self.log_file, 'a') as the_file:
                     the_file.write(str(self.cycle_counter) +
-                               ',' + str(score) +
+                               ',' + str(reward_sum) +
                                ',' + str(self.episode_num) + '\n')
-                #self.reward_sum = 0
+                self.reward_sum = 0
 
 
                 if(args.test and self.episode_num % 50 == 0):
