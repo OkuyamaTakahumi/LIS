@@ -208,7 +208,7 @@ class CnnDqnAgent(object):
             # Model Save
             if self.q_net.initial_exploration < self.time and np.mod(self.time,self.q_net.save_model_freq) == 0:
                 print "------------------Save Model------------------"
-                self.q_net.save_model(self.time)
+                self.q_net.save_model(self.time,self.velocity)
 
         # Time count
         self.time += 1
